@@ -62,22 +62,23 @@ If you want numbers that are comparable across configurations:
    fix, a multi-file feature, a cross-component bug, and a research-heavy
    change. Write the prompts down and reuse them verbatim.
 2. Run each task in at least two configurations:
-   - Baseline: Astra root only, `[agents] enabled = false`, no skill.
-   - Orchestrated: the selected Pro or Plus profile as installed.
-   - Optional floor: Luna root only, to see the cheapest possible run.
+   - Baseline: Sol root only, `[agents] enabled = false`, no skill.
+   - Orchestrated: any current profile as installed; compare the standard
+     concurrency limit of 4 with the max-2 limit of 2 if useful.
 3. Record for every run: per-model uncached input, cached input, output and
    reasoning tokens; number of subagents spawned; wall time; and the change
    in 5-hour and 7-day `used_percent`.
 4. Repeat each cell two or three times. Variance between runs of the same
    prompt is large enough that a single sample misleads.
-5. Record the profile and any overrides: Pro uses Astra `medium` with Luna
-   `max`; Plus uses Luna `max` with Luna `medium`. Both use an Astra `low`
-   reviewer. Note the Codex version. Caching behaviour and subagent context handling
+5. Record the profile and any overrides. All four current profiles use Sol
+   `medium` for the root and reviewer, and Luna `max` for execution roles and
+   default subagents. The max-2 variants differ only in concurrency (2 instead
+   of 4). Note the Codex version. Caching behaviour and subagent context handling
    change between releases.
 
 Suggested results table:
 
-| Task | Config | Astra uncached / cached / out | Luna uncached / cached / out | Subagents | Wall | 5h delta | 7d delta |
+| Task | Config | Sol uncached / cached / out | Luna uncached / cached / out | Subagents | Wall | 5h delta | 7d delta |
 |---|---|---|---|---:|---:|---:|---:|
 
 ## Reading the numbers
@@ -94,15 +95,16 @@ most honest single number for "how much of my plan did this task cost". Note
 that the window is account-wide, so other Codex sessions running at the same
 time inflate the delta.
 
-The root thread is the largest line item even at `low` reasoning. It stays
-alive for the whole task, polls subagents, and re-reads its context on every
-response. Parallelism trades tokens for latency: every spawned subagent
-re-reads its own context on every response.
+The root thread can be a large line item: it stays alive for the whole task,
+polls subagents, and re-reads its context on every response. Parallelism trades
+tokens for latency: every spawned subagent re-reads its own context on every
+response. The low-effort root observation in the historical sample below does
+not describe today's medium-effort profiles.
 
 The auto-review guardian threads are Codex's own approval reviewer, not part
 of this setup. They are small but not free.
 
-## Sample run
+## Historical sample run
 
 One run, one repository, one Codex version. Treat it as a scale reference,
 not a benchmark.
@@ -149,29 +151,21 @@ Takeaways from this single run:
 
 In rough order of impact:
 
-- On Plus, move the root to Luna. The root is the largest line item in every
-  orchestrated session, so this saves more than any subagent change. The
-  installer does this when you select the Plus plan; for manual setups see
-  `plus-plan.md`:
-
-  ```toml
-  # Root
-  model = "gpt-5.6-luna"
-  model_reasoning_effort = "max"
-  ```
-
+- Keep the GPT-6 Sol root focused: it stays active throughout orchestration and is
+  the largest line item in the historical sample. Current profiles fix Sol at
+  `medium` and Luna at `max`; the `routine-coding.md` preset changes the service
+  tier to `fast` without changing reasoning effort.
 - Do not orchestrate small tasks. The skill's delegation gate already says
-  this; enforce it by not invoking `$astra-orchestrator` for one-file edits.
+  this; enforce it by not invoking `$sol-orchestrator` for one-file edits.
 - Keep `max_concurrent_threads_per_session` low. Each extra concurrent
   subagent is a second full context being re-read on every response.
 - Ask subagents for short reports. The skill's "cost and context discipline"
-  section exists because raw logs pasted into the root are re-read by the
-  root on every subsequent response.
-- Skip the reviewer for low-risk changes. It is Astra, and it re-reads the
+  section exists because raw logs pasted into the root are re-read by the root
+  on every subsequent response.
+- Skip the reviewer for low-risk changes. It is GPT-6 Sol, and it re-reads the
   diff and surrounding context.
-- Lower Luna to `low` reasoning for explorer and tester roles; output and
-  reasoning tokens are a small share of the total, so this mainly shortens
-  wall time.
+- Choose a max-2-subagents profile when lower concurrency is appropriate. All
+  four shipped profiles otherwise keep the same model and reasoning settings.
 
 ## Contributing results
 

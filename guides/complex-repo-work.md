@@ -1,20 +1,19 @@
 # Complex Repository Work
 
-Choose this preset for architecture changes, difficult debugging, and work
-where higher-confidence reasoning matters more than latency.
+Choose this preset for architecture changes and difficult debugging when you
+prefer the standard service tier. The project's shared reasoning settings
+remain Sol `medium` and Luna `max`.
 
-This is an optional root override for the [Pro profile](full-orchestration.md),
-whose default is Astra `medium`. It leaves the installed Luna `max` roles
-and Astra `low` reviewer in place. If you adopt this override, update the
-installed skill's root-reasoning wording to match.
+This preset changes only the service tier; it does not raise reasoning effort
+or alter any installed role settings.
 
 Add or merge this into:
 
 `~/.codex/config.toml`
 
 ```toml
-model = "gpt-6-astra"
-model_reasoning_effort = "high"
+model = "gpt-6-sol"
+model_reasoning_effort = "medium"
 service_tier = "standard"
 ```
 

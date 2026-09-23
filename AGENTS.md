@@ -1,6 +1,6 @@
 # Codex project instructions
 
-For complex coding tasks, use the `astra-orchestrator` skill when its trigger conditions match.
+For complex coding tasks, use the `sol-orchestrator` skill when its trigger conditions match. GPT-6 Sol is the root orchestrator and reviewer; GPT-6 Luna handles execution roles and default subagents.
 
 The root agent owns architecture, decomposition, integration, and final verification.
 Prefer specialized subagents for bounded exploration, implementation, testing, review, and technical research.
